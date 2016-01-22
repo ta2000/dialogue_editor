@@ -10,10 +10,13 @@ body {
 div {
 	clear: both;
 	padding: 10px;
-	border: 1px solid black;
 	width: 200px;
 	overflow: hidden;
 	margin-bottom: 5px;
+}
+
+.toolbox {
+	border: 1px solid black;
 }
 
 input {
