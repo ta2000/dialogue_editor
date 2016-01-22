@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Level Maker</title>
+	<link rel="icon" href="favicon.png" type="image/gif">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="class.js"></script>
+</head>
+
+<body>
+
+<div>
+	<input type="file" id="fileinput" />
+	<input type="text" id="levelname" placeholder="Level Name" value="level" onchange="updateLevelName()"></input>
+	<button onclick="save()">Save</button>
+	<a download="level.json" id="download">Download</a>
+	<input type="range" id="myRange" value="1" oninput="sliderUpdate()" step="0.01" min="0.5" max="5">
+	<p id="rangeVal">1</p>
+</div>
+
+<div style="visibility:hidden">
+	<select id="select" onchange="setTile()">
+		<option value="ERASE">									Erase</option>
+		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\player.png">			Player</option>
+		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\space_goblin.png">	Space Goblin</option>
+		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\wall.png">			Wall</option>
+		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\portal.png">			Portal</option>
+		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\prisoner.png">		Prisoner (crewman)</option>
+		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\powerup.png">			Hidden Power Up Wall</option>
+		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\door.png">			Jail Cell Door</option>
+	</select>
+</div>
+
+<script type="text/javascript">
+window.onload = function() {
+	for (var i = 0; i < document.getElementById('select').children.length; i++) {
+		if (document.getElementById('select').children[i].value!="ERASE") {
+			images[i] = new Image();
+			images[i].src = document.getElementById('select').children[i].value;
+		}
+	}
+	window.addEventListener("mousedown", Editor.mouseTrue);
+	window.addEventListener("mouseup", Editor.mouseFalse);
+	window.addEventListener("mousemove", Editor.getPosition);
+	window.addEventListener("mousedown", Editor.getPosition);
+}
+
+function updateLevelName() {
+	document.getElementById('download').download=(document.getElementById('levelname').value + ".json");
+}
+
+document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
+function readSingleFile(evt) {
+	var f = evt.target.files[0];
+	if (f) {
+		var r = new FileReader();
+		r.onload = function(e) {
+		Editor.loadLevel(e.target.result);
+	}
+		r.readAsText(f);
+	} else {
+		alert("Failed to load file");
+	}
+}
+
+function sliderUpdate() {
+	document.getElementById('rangeVal').innerHTML = document.getElementById('myRange').value;
+	tileSize = StartTileSize*document.getElementById('myRange').value;
+	Editor.start();
+}
+var e = document.getElementById("select");
+var selectedTile = e.selectedIndex;
+function setTile() {
+	selectedTile = e.selectedIndex;
+}
+var images=[];
+
+
+
+var obj = {
+	width:0,
+	height:0,
+	board:[],
+};
+
+
+
+function start() {
+	Editor.start();
+}
+
+var StartTileSize = 16;
+var tileSize = StartTileSize;
+
+var Editor = {
+	mousedown : false,
+	canvas : document.createElement("canvas"),
+	start : function() {
+		this.canvas.width = obj.width*tileSize;
+		this.canvas.height = obj.height*tileSize;
+		this.ctx = this.canvas.getContext("2d");
+		document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+		this.drawGrid();
+		this.draw();
+	},
+	clear : function() {
+		this.canvas.width = this.canvas.width;
+	},
+	draw : function() {
+		Editor.clear();
+		for (var i=0; i<obj.board.length; i++) {
+			if (images[obj.board[i].type]=="ERASE") {
+				this.ctx.fillStyle = "#FFFFFF";
+				this.ctx.fillRect(obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
+			} else {
+				this.ctx.drawImage(images[obj.board[i].type], obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
+			}
+		};
+
+		this.drawGrid();
+	},
+	drawGrid : function() {
+		// Draw grid
+		this.ctx.beginPath();
+		this.ctx.strokeStyle = "#CCCCCC";
+		for (var i = tileSize; i < this.canvas.width; i+=tileSize) {
+			this.ctx.moveTo(i, 0);
+			this.ctx.lineTo(i, this.canvas.height);
+			this.ctx.stroke();
+		};
+		for (var i = tileSize; i < this.canvas.height; i+=tileSize) {
+			this.ctx.moveTo(0, i);
+			this.ctx.lineTo(this.canvas.width, i);
+			this.ctx.stroke();
+		};
+	},
+	loadLevel : function(file) {
+		obj = JSON.parse(file);
+		this.canvas.width = tileSize*obj.width;
+		this.canvas.height = tileSize*obj.height;
+		Editor.start();
+	},
+	mouseTrue : function() {
+		Editor.mousedown = true;
+	},
+	mouseFalse : function() {
+		Editor.mousedown = false;
+	},
+	// Get canvas X/Y
+	getPosition : function(e) {
+		if (Editor.mousedown) {
+		    var x;
+		    var y;
+		    if (e.pageX || e.pageY) {
+				x = e.pageX;
+				y = e.pageY;
+		    } else {
+			x = e.clientX + document.body.scrollLeft +
+		        document.documentElement.scrollLeft;
+			y = e.clientY + document.body.scrollTop +
+		        document.documentElement.scrollTop;
+		    }
+
+			// Convert to coordinates relative to the canvas
+		    x -= Editor.canvas.offsetLeft;
+		    y -= Editor.canvas.offsetTop;
+
+			if (x>=0 && y>=0 && x<=Editor.canvas.width && y<=Editor.canvas.height) {
+
+				x = Math.round((Math.floor(x/tileSize)*tileSize)/tileSize);
+				y = Math.round((Math.floor(y/tileSize)*tileSize)/tileSize);
+
+				for (var i = 0; i < obj.board.length; i++) {
+					if ( (obj.board[i].x == x) && (obj.board[i].y == y) ) {
+						dialogue(obj.board[i]);
+					}
+				}
+
+			}
+			Editor.draw();
+		}
+	}
+
+}
+
+function dialogue(tile) {
+	tile.tree = {};
+	tile.tree.npcText = [
+		["Hello, what is your name?", [0, 1]],
+		["Nice to meet you", [2]],
+		["My name is Spoog", [0]],
+		["Goodbye", [3]]
+	];
+	tile.tree.playerText = [
+		["My name is bob", [1]],
+		["Who are you?", [2]],
+		["Goodbye", [3]]
+	];
+
+
+	console.log(tile);
+}
+
+function removeElement(x, y) {
+	var temp = [];
+	for (var i = 0; i < obj.board.length; i++) {
+		if ( (obj.board[i].y==y) && (obj.board[i].x==x) ) {
+			console.log("Removed index " + i);
+		} else {
+			temp.push(obj.board[i]);
+		}
+	}
+	obj.board = temp;
+}
+
+
+function save() {
+	var formBlob = new Blob([JSON.stringify(obj)], { type: 'text/plain' });
+	document.getElementById('download').href = window.URL.createObjectURL(formBlob);
+}
+
+</script>
+
+</body>
+
+
+</html>
