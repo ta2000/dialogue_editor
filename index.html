@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Level Maker</title>
-	<link rel="icon" href="favicon.png" type="image/gif">
+	<title>Dialogue Editor</title>
+	<link rel="icon" href="C:\Users\toman_000\Desktop\dialogue_editor\favicon.png" type="image/gif">
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<script type="text/javascript" src="class.js"></script>
 </head>
 
 <body>
 
-<div>
+<div class="toolbox">
 	<input type="file" id="fileinput" />
 	<input type="text" id="levelname" placeholder="Level Name" value="level" onchange="updateLevelName()"></input>
 	<button onclick="save()">Save</button>
@@ -18,7 +18,21 @@
 	<p id="rangeVal">1</p>
 </div>
 
-<div style="visibility:hidden">
+<div class="toolbox">
+	<p>NPC</p>
+	<input type="number" onchange="textsUpdate()" min="0" value="0" id="numNpc"/>
+	<p>Player</p>
+	<input type="number" onchange="textsUpdate()" min="0" value="0" id="numPlayer"/>
+</div>
+
+<div class="toolbox" id="npcTexts">
+</div>
+
+<div class="toolbox" id="playerTexts">
+</div>
+
+
+<div class="toolbox" style="visibility:hidden">
 	<select id="select" onchange="setTile()">
 		<option value="ERASE">									Erase</option>
 		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\player.png">			Player</option>
@@ -45,23 +59,7 @@ window.onload = function() {
 	window.addEventListener("mousedown", Editor.getPosition);
 }
 
-function updateLevelName() {
-	document.getElementById('download').download=(document.getElementById('levelname').value + ".json");
-}
 
-document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
-function readSingleFile(evt) {
-	var f = evt.target.files[0];
-	if (f) {
-		var r = new FileReader();
-		r.onload = function(e) {
-		Editor.loadLevel(e.target.result);
-	}
-		r.readAsText(f);
-	} else {
-		alert("Failed to load file");
-	}
-}
 
 function sliderUpdate() {
 	document.getElementById('rangeVal').innerHTML = document.getElementById('myRange').value;
@@ -74,6 +72,37 @@ function setTile() {
 	selectedTile = e.selectedIndex;
 }
 var images=[];
+
+
+
+var numNpc = document.getElementById('numNpc');
+var numPlayer = document.getElementById('numPlayer');
+var npcTexts = document.getElementById('npcTexts');
+var playerTexts = document.getElementById('playerTexts');
+function textsUpdate() {
+	while (npcTexts.firstChild) {
+		npcTexts.removeChild(npcTexts.firstChild);
+	}
+	for (var i = 0; i < numNpc.value; i++) {
+		var div = document.createElement('div');
+		div.appendChild(document.createElement('input'));
+		div.appendChild(document.createTextNode(i+1));
+		npcTexts.appendChild(div);
+	}
+	while (playerTexts.firstChild) {
+		playerTexts.removeChild(playerTexts.firstChild);
+	}
+	for (var i = 0; i < numPlayer.value; i++) {
+		var div = document.createElement('div');
+		div.appendChild(document.createElement('input'));
+		div.appendChild(document.createTextNode(i+1));
+		playerTexts.appendChild(div);
+	}
+}
+
+
+
+
 
 
 
@@ -189,7 +218,7 @@ function dialogue(tile) {
 		["Hello, what is your name?", [0, 1]],
 		["Nice to meet you", [2]],
 		["My name is Spoog", [0]],
-		["Goodbye", [3]]
+		["Goodbye", []]
 	];
 	tile.tree.playerText = [
 		["My name is bob", [1]],
@@ -200,6 +229,12 @@ function dialogue(tile) {
 
 	console.log(tile);
 }
+
+
+
+
+
+
 
 function removeElement(x, y) {
 	var temp = [];
@@ -213,6 +248,23 @@ function removeElement(x, y) {
 	obj.board = temp;
 }
 
+function updateLevelName() {
+	document.getElementById('download').download=(document.getElementById('levelname').value + ".json");
+}
+
+document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
+function readSingleFile(evt) {
+	var f = evt.target.files[0];
+	if (f) {
+		var r = new FileReader();
+		r.onload = function(e) {
+		Editor.loadLevel(e.target.result);
+	}
+		r.readAsText(f);
+	} else {
+		alert("Failed to load file");
+	}
+}
 
 function save() {
 	var formBlob = new Blob([JSON.stringify(obj)], { type: 'text/plain' });
