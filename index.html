@@ -208,10 +208,10 @@ var Editor = {
 				y = Math.round((Math.floor(y/tileSize)*tileSize)/tileSize);
 
 				for (var i = 0; i < obj.board.length; i++) {
-					if (obj.board[i].tree != undefined) {
-						delete obj.board[i].tree;
-					} else {
-						if ( (obj.board[i].x == x) && (obj.board[i].y == y) ) {
+					if ( (obj.board[i].x == x) && (obj.board[i].y == y) ) {
+						if (obj.board[i].tree != undefined) {
+							delete obj.board[i].tree;
+						} else {
 							saveTree(obj.board[i]);
 						}
 					}
