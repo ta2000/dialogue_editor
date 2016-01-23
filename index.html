@@ -19,9 +19,9 @@
 </div>
 
 <div class="toolbox">
-	<p>NPC</p>
+	<p>NPC Query</p>
 	<input type="number" onchange="textsUpdate()" min="0" value="0" id="numNpc"/>
-	<p>Player</p>
+	<p>Player Response</p>
 	<input type="number" onchange="textsUpdate()" min="0" value="0" id="numPlayer"/>
 </div>
 
@@ -35,17 +35,18 @@
 <div class="toolbox" style="visibility:hidden">
 	<select id="select" onchange="setTile()">
 		<option value="ERASE">									Erase</option>
-		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\player.png">			Player</option>
-		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\space_goblin.png">	Space Goblin</option>
-		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\wall.png">			Wall</option>
-		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\portal.png">			Portal</option>
-		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\prisoner.png">		Prisoner (crewman)</option>
-		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\powerup.png">			Hidden Power Up Wall</option>
-		<option value="C:\Users\toman_000\Desktop\level_maker\tiles\door.png">			Jail Cell Door</option>
+		<option value="C:\Users\toman_000\Desktop\dialogue_editor\tiles\player.png">			Player</option>
+		<option value="C:\Users\toman_000\Desktop\dialogue_editor\tiles\space_goblin.png">	Space Goblin</option>
+		<option value="C:\Users\toman_000\Desktop\dialogue_editor\tiles\wall.png">			Wall</option>
+		<option value="C:\Users\toman_000\Desktop\dialogue_editor\tiles\portal.png">			Portal</option>
+		<option value="C:\Users\toman_000\Desktop\dialogue_editor\tiles\prisoner.png">		Prisoner (crewman)</option>
+		<option value="C:\Users\toman_000\Desktop\dialogue_editor\tiles\powerup.png">			Hidden Power Up Wall</option>
+		<option value="C:\Users\toman_000\Desktop\dialogue_editor\tiles\door.png">			Jail Cell Door</option>
 	</select>
 </div>
 
 <script type="text/javascript">
+
 window.onload = function() {
 	for (var i = 0; i < document.getElementById('select').children.length; i++) {
 		if (document.getElementById('select').children[i].value!="ERASE") {
@@ -66,11 +67,6 @@ function sliderUpdate() {
 	tileSize = StartTileSize*document.getElementById('myRange').value;
 	Editor.start();
 }
-var e = document.getElementById("select");
-var selectedTile = e.selectedIndex;
-function setTile() {
-	selectedTile = e.selectedIndex;
-}
 var images=[];
 
 
@@ -87,6 +83,12 @@ function textsUpdate() {
 		var div = document.createElement('div');
 		div.appendChild(document.createElement('input'));
 		div.appendChild(document.createTextNode(i+1));
+		for (var j=0; j<4; j++) {
+			var input = document.createElement('input');
+			input.setAttribute('type', 'number');
+			input.style.width = 30+"px";
+			div.appendChild(input);
+		}
 		npcTexts.appendChild(div);
 	}
 	while (playerTexts.firstChild) {
@@ -96,13 +98,15 @@ function textsUpdate() {
 		var div = document.createElement('div');
 		div.appendChild(document.createElement('input'));
 		div.appendChild(document.createTextNode(i+1));
+
+		var input = document.createElement('input');
+		input.setAttribute('type', 'number');
+		input.style.width = 30+"px";
+		div.appendChild(input);
+
 		playerTexts.appendChild(div);
 	}
 }
-
-
-
-
 
 
 
@@ -142,6 +146,10 @@ var Editor = {
 				this.ctx.fillStyle = "#FFFFFF";
 				this.ctx.fillRect(obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
 			} else {
+				if (obj.board[i].tree != undefined) {
+					this.ctx.fillStyle = "lime";
+					this.ctx.fillRect(obj.board[i].x*tileSize-2, obj.board[i].y*tileSize-2, tileSize+4, tileSize+4);
+				}
 				this.ctx.drawImage(images[obj.board[i].type], obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
 			}
 		};
@@ -200,8 +208,12 @@ var Editor = {
 				y = Math.round((Math.floor(y/tileSize)*tileSize)/tileSize);
 
 				for (var i = 0; i < obj.board.length; i++) {
-					if ( (obj.board[i].x == x) && (obj.board[i].y == y) ) {
-						dialogue(obj.board[i]);
+					if (obj.board[i].tree != undefined) {
+						delete obj.board[i].tree;
+					} else {
+						if ( (obj.board[i].x == x) && (obj.board[i].y == y) ) {
+							saveTree(obj.board[i]);
+						}
 					}
 				}
 
@@ -212,41 +224,43 @@ var Editor = {
 
 }
 
-function dialogue(tile) {
-	tile.tree = {};
-	tile.tree.npcText = [
-		["Hello, what is your name?", [0, 1]],
-		["Nice to meet you", [2]],
-		["My name is Spoog", [0]],
-		["Goodbye", []]
-	];
-	tile.tree.playerText = [
-		["My name is bob", [1]],
-		["Who are you?", [2]],
-		["Goodbye", [3]]
-	];
 
+function saveTree(selectedTile) {
+	selectedTile.tree = {};
+	selectedTile.tree.npcText = [];
+	selectedTile.tree.playerText = [];
+	// Add NPC text to selected tile
+	for (var i=0; i<npcTexts.childElementCount; i++) {
+		var branch = [];
 
-	console.log(tile);
-}
+		branch.push(npcTexts.children[i].children[0].value);
 
-
-
-
-
-
-
-function removeElement(x, y) {
-	var temp = [];
-	for (var i = 0; i < obj.board.length; i++) {
-		if ( (obj.board[i].y==y) && (obj.board[i].x==x) ) {
-			console.log("Removed index " + i);
-		} else {
-			temp.push(obj.board[i]);
+		var links = [];
+		for (var j=1; j<npcTexts.children[i].childElementCount; j++) {
+    		if (npcTexts.children[i].children[j].value!="") {
+				links.push(npcTexts.children[i].children[j].value);
+			}
 		}
+		branch.push(links);
+		selectedTile.tree.npcText.push(branch);
 	}
-	obj.board = temp;
+	// Add Player text to selected tile
+	for (var i=0; i<playerTexts.childElementCount; i++) {
+		var branch = [];
+
+		branch.push(playerTexts.children[i].children[0].value);
+
+		var links = [];
+    	if (playerTexts.children[i].children[1].value!="") {
+			links.push(playerTexts.children[i].children[1].value);
+		}
+
+		branch.push(links);
+		selectedTile.tree.playerText.push(branch);
+	}
 }
+
+
 
 function updateLevelName() {
 	document.getElementById('download').download=(document.getElementById('levelname').value + ".json");
