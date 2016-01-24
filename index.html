@@ -23,6 +23,11 @@
 	<input type="number" onchange="textsUpdate()" min="0" value="0" id="numNpc"/>
 	<p>Player Response</p>
 	<input type="number" onchange="textsUpdate()" min="0" value="0" id="numPlayer"/>
+
+	<div>
+		<button onclick="saveTree(Editor.selected)">Add</button>
+		<button onclick="removeTree(Editor.selected)">Remove</button>
+	</div>
 </div>
 
 <div class="toolbox" id="npcTexts">
@@ -31,17 +36,16 @@
 <div class="toolbox" id="playerTexts">
 </div>
 
-
 <div class="toolbox" style="visibility:hidden">
 	<select id="select" onchange="setTile()">
 		<option value="ERASE">									Erase</option>
-		<option value="/dialogue_editor/tiles/player.png">			Player</option>
-		<option value="/dialogue_editor/tiles/space_goblin.png">	Space Goblin</option>
-		<option value="/dialogue_editor/tiles/wall.png">			Wall</option>
-		<option value="/dialogue_editor/tiles/portal.png">			Portal</option>
-		<option value="/dialogue_editor/tiles/prisoner.png">		Prisoner (crewman)</option>
-		<option value="/dialogue_editor/tiles/powerup.png">			Hidden Power Up Wall</option>
-		<option value="/dialogue_editor/tiles/door.png">			Jail Cell Door</option>
+		<option value="/dialogue_editor/tiles/player.png">		Player</option>
+		<option value="/dialogue_editor/tiles/space_goblin.png">Space Goblin</option>
+		<option value="/dialogue_editor/tiles/wall.png">		Wall</option>
+		<option value="/dialogue_editor/tiles/portal.png">		Portal</option>
+		<option value="/dialogue_editor/tiles/prisoner.png">	Prisoner (crewman)</option>
+		<option value="/dialogue_editor/tiles/powerup.png">		Hidden Power Up Wall</option>
+		<option value="/dialogue_editor/tiles/door.png">		Jail Cell Door</option>
 	</select>
 </div>
 
@@ -150,6 +154,10 @@ var Editor = {
 					this.ctx.fillStyle = "lime";
 					this.ctx.fillRect(obj.board[i].x*tileSize-2, obj.board[i].y*tileSize-2, tileSize+4, tileSize+4);
 				}
+				if (obj.board[i] == this.selected) {
+					this.ctx.fillStyle = "cyan";
+					this.ctx.fillRect(obj.board[i].x*tileSize-2, obj.board[i].y*tileSize-2, tileSize+4, tileSize+4);
+				}
 				this.ctx.drawImage(images[obj.board[i].type], obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
 			}
 		};
@@ -209,10 +217,37 @@ var Editor = {
 
 				for (var i = 0; i < obj.board.length; i++) {
 					if ( (obj.board[i].x == x) && (obj.board[i].y == y) ) {
+						Editor.selected = obj.board[i];
+
+						numNpc.value = 0;
+						numPlayer.value = 0;
+						numPlayer.onchange();
+
 						if (obj.board[i].tree != undefined) {
-							delete obj.board[i].tree;
-						} else {
-							saveTree(obj.board[i]);
+							// Show dialogue in toolbar
+							numNpc.value = obj.board[i].tree.npcText.length;
+							numPlayer.value = obj.board[i].tree.playerText.length;
+							numPlayer.onchange();
+
+							// Texts
+							for (var j = 0; j < npcTexts.childElementCount; j++) {
+								npcTexts.children[j].children[0].value = obj.board[i].tree.npcText[j][0];
+							}
+							for (var j = 0; j < playerTexts.childElementCount; j++) {
+								playerTexts.children[j].children[0].value = obj.board[i].tree.playerText[j][0];
+							}
+
+							// Links
+							for (var j = 0; j < npcTexts.childElementCount; j++) {
+								for (var k = 1; k < obj.board[i].tree.npcText[j][1].length+1; k++) {
+									npcTexts.children[j].children[k].value = obj.board[i].tree.npcText[j][1][k-1];
+								}
+							}
+							for (var j = 0; j < playerTexts.childElementCount; j++) {
+								for (var k = 1; k < obj.board[i].tree.playerText[j][1].length+1; k++) {
+									playerTexts.children[j].children[k].value = obj.board[i].tree.playerText[j][1][k-1];
+								}
+							}
 						}
 					}
 				}
@@ -220,7 +255,8 @@ var Editor = {
 			}
 			Editor.draw();
 		}
-	}
+	},
+	selected : Object
 
 }
 
@@ -260,6 +296,15 @@ function saveTree(selectedTile) {
 	}
 }
 
+function removeTree(selectedTile) {
+	if (selectedTile.tree != undefined) {
+		delete selectedTile.tree;
+	}
+
+	numNpc.value = 0;
+	numPlayer.value = 0;
+	numPlayer.onchange();
+}
 
 
 function updateLevelName() {
