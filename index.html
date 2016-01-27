@@ -38,14 +38,12 @@
 
 <div class="toolbox" style="visibility:hidden">
 	<select id="select" onchange="setTile()">
-		<option value="ERASE">									Erase</option>
-		<option value="/dialogue_editor/tiles/player.png">		Player</option>
-		<option value="/dialogue_editor/tiles/space_goblin.png">Space Goblin</option>
-		<option value="/dialogue_editor/tiles/wall.png">		Wall</option>
-		<option value="/dialogue_editor/tiles/portal.png">		Portal</option>
-		<option value="/dialogue_editor/tiles/prisoner.png">	Prisoner (crewman)</option>
-		<option value="/dialogue_editor/tiles/powerup.png">		Hidden Power Up Wall</option>
-		<option value="/dialogue_editor/tiles/door.png">		Jail Cell Door</option>
+		<option value="ERASE">Erase</option>
+		<option value="/dialogue_editor/tiles/player.png">Player</option>
+		<option value="/dialogue_editor/tiles/space_goblin.png">Goblin</option>
+		<option value="/dialogue_editor/tiles/wall.png">Wall</option>
+		<option value="/dialogue_editor/tiles/prisoner.png">Crewman</option>
+		<option value="/dialogue_editor/tiles/door.png">JailDoor</option>
 	</select>
 </div>
 
@@ -146,7 +144,7 @@ var Editor = {
 	draw : function() {
 		Editor.clear();
 		for (var i=0; i<obj.board.length; i++) {
-			if (images[obj.board[i].type]=="ERASE") {
+			if (images[obj.board[i].imgIndex]=="ERASE") {
 				this.ctx.fillStyle = "#FFFFFF";
 				this.ctx.fillRect(obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
 			} else {
@@ -158,7 +156,7 @@ var Editor = {
 					this.ctx.fillStyle = "cyan";
 					this.ctx.fillRect(obj.board[i].x*tileSize-2, obj.board[i].y*tileSize-2, tileSize+4, tileSize+4);
 				}
-				this.ctx.drawImage(images[obj.board[i].type], obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
+				this.ctx.drawImage(images[obj.board[i].imgIndex], obj.board[i].x*tileSize, obj.board[i].y*tileSize, tileSize, tileSize);
 			}
 		};
 
